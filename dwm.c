@@ -1686,7 +1686,7 @@ tile(Monitor *m)
 		mw = m->ww;
 	for (i = my = ty = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), i++) {
         int newx = m->wx;
-        if (i > 0) {
+        if (i >= m->nmaster) {
             newx += gappx;
         }
 		if (i < m->nmaster) {
