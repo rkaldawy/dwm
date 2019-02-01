@@ -3,6 +3,7 @@
 /* appearance */
 static const unsigned int borderpx  = 0;        /* border pixel of windows */
 static const unsigned int gappx     = 5;        /* gaps between windows (similar to i3gaps) */
+static const unsigned int topgappx  = 5;        /* gaps between windows (similar to i3gaps) */
 static const unsigned int snap      = 32;       /* snap pixel */
 static const int showbar            = 1;        /* 0 means no bar */
 static const int topbar             = 1;        /* 0 means bottom bar */
@@ -60,6 +61,13 @@ static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() 
 static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-nb", col_gray1, "-nf", col_gray3, "-sb", col_cyan, "-sf", col_gray4, NULL };
 static const char *termcmd[]  = { "urxvt", NULL };
 static const char *wallpapercmd[] = { "/home/rkaldawy/Documents/scripts/wallpaper.sh", NULL };
+static const char *reloaddwmcmd[] = {"killall", "dwmcatcher", "-q", "-USR1", NULL };
+static const char *raisevolcmd[] = {"/home/rkaldawy/Documents/scripts/pulse/raise_volume.sh", NULL };
+static const char *lowervolcmd[] = {"/home/rkaldawy/Documents/scripts/pulse/lower_volume.sh", NULL };
+static const char *togglevolcmd[] = {"pactl", "set-sink-mute", "@DEFAULT_SINK@", "toggle", NULL };
+static const char *brightupcmd[] = {"xbacklight", "-inc", "20", NULL};
+static const char *brightdowncmd[] = {"xbacklight", "-dec", "20", NULL};
+static const char *scrotcmd[] = {"/home/rkaldawy/Documents/scripts/screenshot.sh", "-w", NULL};
 
 static Key keys[] = {
 	/* modifier                     key        function        argument */
@@ -67,7 +75,9 @@ static Key keys[] = {
 	{ MODKEY,                       XK_Return, spawn,          {.v = termcmd } },
 	{ MODKEY,                       XK_b,      togglebar,      {0} },
 	{ MODKEY,                       XK_j,      focusstack,     {.i = +1 } },
-	{ MODKEY,                       XK_k,      focusstack,     {.i = -1 } },
+	{ MODKEY,                       XK_k,      focusstack,     {.i = -1 } }, 
+	{ MODKEY|ShiftMask,             XK_k,      swapup,       {0} },
+	{ MODKEY|ShiftMask,             XK_j,      swapdown,       {0} },
 	{ MODKEY,                       XK_comma,      incnmaster,     {.i = +1 } },
 	{ MODKEY,                       XK_period,      incnmaster,     {.i = -1 } },
 	{ MODKEY,                       XK_h,      setmfact,       {.f = -0.05} },
@@ -75,9 +85,9 @@ static Key keys[] = {
 	{ MODKEY|ShiftMask,                       XK_Return, zoom,           {0} },
 	{ MODKEY,                       XK_Tab,    view,           {0} },
 	{ MODKEY|ShiftMask,             XK_c,      killclient,     {0} },
-	{ MODKEY,                       XK_t,      setlayout,      {.v = &layouts[0]} },
-	{ MODKEY,                       XK_f,      setlayout,      {.v = &layouts[1]} },
-	{ MODKEY,                       XK_m,      setlayout,      {.v = &layouts[2]} },
+	{ MODKEY,                       XK_i,      setlayout,      {.v = &layouts[0]} },
+	{ MODKEY,                       XK_o,      setlayout,      {.v = &layouts[1]} },
+	{ MODKEY,                       XK_p,      setlayout,      {.v = &layouts[2]} },
 	{ MODKEY,                       XK_space,  setlayout,      {0} },
 	{ MODKEY|ShiftMask,             XK_space,  togglefloating, {0} },
 	{ MODKEY,                       XK_0,      view,           {.ui = ~0 } },
@@ -96,7 +106,14 @@ static Key keys[] = {
 	TAGKEYS(                        XK_8,                      7)
 	TAGKEYS(                        XK_9,                      8)
 	{ MODKEY|ShiftMask,             XK_q,      quit,           {0} },
-  { MODKEY|ShiftMask,             XK_n,      spawn,          {.v = wallpapercmd } }
+  { MODKEY|ShiftMask,             XK_n,      spawn,          {.v = wallpapercmd} },
+  { MODKEY|ShiftMask,             XK_r,      spawn,          {.v = reloaddwmcmd} },
+  { MODKEY|ShiftMask,             0xff61,    spawn,          {.v = scrotcmd} },
+  { 0,                          0x1008ff13,  spawn,          {.v = raisevolcmd} },
+  { 0,                          0x1008ff11,  spawn,          {.v = lowervolcmd} },
+  { 0,                          0x1008ff12,  spawn,          {.v = togglevolcmd} },
+  { 0,                          0x1008ff02,  spawn,          {.v = brightupcmd} },
+  { 0,                          0x1008ff03,  spawn,          {.v = brightdowncmd} }
 };
 
 /* button definitions */

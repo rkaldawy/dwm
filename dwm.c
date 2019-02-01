@@ -206,6 +206,8 @@ static void seturgent(Client *c, int urg);
 static void showhide(Client *c);
 static void sigchld(int unused);
 static void spawn(const Arg *arg);
+static void swapup(const Arg *args);
+static void swapdown(const Arg *arg);
 static void tag(const Arg *arg);
 static void tagmon(const Arg *arg);
 static void tile(Monitor *);
@@ -1653,6 +1655,83 @@ spawn(const Arg *arg)
 }
 
 void
+swapdown(const Arg *args)
+{
+  if (!selmon->sel)
+		return;
+
+  Client *target  = selmon->sel;
+  Client *p = selmon->clients;
+  
+  if(p == NULL || target == NULL){
+    return;
+  }
+  else if(nexttiled(target->next) == NULL){
+    return;
+  }
+  else if(target == selmon->clients){
+    zoom(args);
+    focus(target);
+    return;
+  }
+
+  Client *c, *n;
+
+  //find the window in the chain
+  for(c = nexttiled(selmon->clients); c; c = nexttiled(c->next)){
+    if(c == target){
+      n = nexttiled(c->next);
+      p->next = n;
+      c->next = nexttiled(n->next);
+      n->next = c;
+
+      focus(c);
+	    arrange(c->mon);
+      return;
+    }
+    p = c;
+  }
+}
+
+void
+swapup(const Arg *args)
+{
+  if (!selmon->sel)
+		return;
+
+  Client *target  = selmon->sel;
+  Client *p = selmon->clients;
+  
+  if(p == NULL || target == NULL){
+    return;
+  }
+  else if(p == target){
+    return;
+  }
+  else if(nexttiled(p->next) == target){
+    zoom(args);
+    return;
+  }
+
+  Client *c;
+  for(c = nexttiled(p->next); c; c = nexttiled(c->next)){ 
+    if(nexttiled(c->next) == target){
+      p->next = target;
+      c->next = nexttiled(target->next);
+      target->next = c;
+
+      focus(target);
+	    arrange(c->mon);
+      return;
+    }
+    p = c;
+  } 
+}
+
+
+
+
+void
 tag(const Arg *arg)
 {
 	if (selmon->sel && arg->ui & TAGMASK) {
@@ -1684,23 +1763,22 @@ tile(Monitor *m)
 		mw = m->nmaster ? m->ww * m->mfact : 0;
 	else
 		mw = m->ww;
-	for (i = my = ty = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), i++) {
-        int newx = m->wx;
-        if (i >= m->nmaster) {
-            newx += gappx;
-        }
+	for (i = 0, my = ty = topgappx, c = nexttiled(m->clients); c; c = nexttiled(c->next), i++) {
+    int newx = m->wx;
+
 		if (i < m->nmaster) {
             r = MIN(n, m->nmaster) - i;
             h = (m->wh - my - gappx * (r - 1)) / r;
 			resize(c, newx, m->wy + my, mw - (2*c->bw), h - (2*c->bw), 0);
 			my += HEIGHT(c) + gappx;
 		} else {
+            newx += gappx;
             r = n - i;
             h = (m->wh - ty - gappx * (r - 1)) / r;
             resize(c, newx + mw + g, m->wy + ty, m->ww - mw - g - (2*c->bw), h - (2*c->bw), False);
             ty += HEIGHT(c) + gappx;
 		}
-    }
+  }
 }
 
 void
