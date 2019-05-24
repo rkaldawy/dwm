@@ -110,6 +110,7 @@ typedef struct {
 
 typedef struct Monitor Monitor;
 typedef struct Client Client;
+
 struct Client {
   char name[256];
   float mina, maxa;
@@ -166,6 +167,11 @@ typedef struct {
   int isfloating;
   int monitor;
 } Rule;
+
+typedef struct {
+  float mfact;
+  int nmaster;
+} TagMonitorData;
 
 /* function declarations */
 static void applyrules(Client *c);
@@ -230,6 +236,7 @@ static void setfullscreen(Client *c, int fullscreen);
 static void setlayout(const Arg *arg);
 static void setmfact(const Arg *arg);
 static void setup(void);
+static void setuptagdata(void);
 static void seturgent(Client *c, int urg);
 static void showhide(Client *c);
 static void sigchld(int unused);
@@ -303,6 +310,8 @@ static Window root, wmcheckwin;
 struct NumTags {
   char limitexceeded[LENGTH(tags) > 31 ? -1 : 1];
 };
+
+TagMonitorData tagData[LENGTH(tags)];
 
 /* function implementations */
 void applyrules(Client *c) {
@@ -1543,6 +1552,8 @@ void setup(void) {
   lrpad = drw->fonts->h;
   bh = drw->fonts->h + 2;
   updategeom();
+  /* user-added setup calls */
+  setuptagdata();
   /* init atoms */
   utf8string = XInternAtom(dpy, "UTF8_STRING", False);
   wmatom[WMProtocols] = XInternAtom(dpy, "WM_PROTOCOLS", False);
@@ -1591,7 +1602,16 @@ void setup(void) {
   XChangeWindowAttributes(dpy, root, CWEventMask | CWCursor, &wa);
   XSelectInput(dpy, root, wa.event_mask);
   grabkeys();
+
   focus(NULL);
+}
+
+void setuptagdata(void) {
+  for (int i = 0; i < LENGTH(tags); i++) {
+    // setting to default
+    tagData[i].mfact = mfact;
+    tagData[i].nmaster = 1;
+  }
 }
 
 void seturgent(Client *c, int urg) {
@@ -2009,12 +2029,35 @@ void updatewmhints(Client *c) {
   }
 }
 
+void store_tag_data(unsigned int tag) {
+  int tagnum = -1;
+  while (tag) {
+    tagnum += 1;
+    tag >>= 1;
+  }
+  tagData[tagnum].mfact = selmon->mfact;
+  tagData[tagnum].nmaster = selmon->nmaster;
+}
+
+void load_tag_data(unsigned int tag) {
+  int tagnum = -1;
+  while (tag) {
+    tagnum += 1;
+    tag >>= 1;
+  }
+  selmon->mfact = tagData[tagnum].mfact;
+  selmon->nmaster = tagData[tagnum].nmaster;
+}
+
 void view(const Arg *arg) {
   if ((arg->ui & TAGMASK) == selmon->tagset[selmon->seltags])
     return;
+  store_tag_data(selmon->tagset[selmon->seltags]);
   selmon->seltags ^= 1; /* toggle sel tagset */
-  if (arg->ui & TAGMASK)
+  if (arg->ui & TAGMASK) {
     selmon->tagset[selmon->seltags] = arg->ui & TAGMASK;
+    load_tag_data(selmon->tagset[selmon->seltags]);
+  }
   focus(NULL);
   arrange(selmon);
 }
