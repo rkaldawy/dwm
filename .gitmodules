@@ -1,0 +1,3 @@
+[submodule "dwm-bar"]
+	path = dwm-bar
+	url = git@gitlab.com:rkaldawy/dwm-bar.git
