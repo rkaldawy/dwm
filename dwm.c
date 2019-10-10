@@ -63,7 +63,18 @@
 
 /* enums */
 enum { CurNormal, CurResize, CurMove, CurLast }; /* cursor */
-enum { SchemeNorm, SchemeSel };                  /* color schemes */
+enum {
+  SchemeNorm,
+  SchemeSel,
+  SchemeLime,
+  SchemePink,
+  SchemeLimeTransition,
+  SchemeTag,
+  SchemeTagSel,
+  SchemeSelToTag,
+  SchemeTagToSel,
+  SchemeTagToTag
+}; /* color schemes */
 enum {
   NetSupported,
   NetWMName,
@@ -462,7 +473,7 @@ void buttonpress(XEvent *e) {
   if (ev->window == selmon->barwin) {
     i = x = 0;
     do
-      x += TEXTW(tags[i]);
+      x += TEXTW(tags[i]) + TEXTW(RIGHT_ARROW) - lrpad;
     while (ev->x >= x && ++i < LENGTH(tags));
     if (i < LENGTH(tags)) {
       click = ClkTagBar;
@@ -715,37 +726,52 @@ void drawbar(Monitor *m) {
   unsigned int i, occ = 0, urg = 0;
   Client *c;
 
-  /* draw status first so it can be overdrawn by tags later */
-  if (m == selmon) { /* status is only drawn on selected monitor */
-    drw_setscheme(drw, scheme[SchemeNorm]);
-    sw = TEXTW(stext) - lrpad + 2; /* 2px right padding */
-    drw_text(drw, m->ww - sw, 0, sw, bh, 0, stext, 0);
-  }
-
   for (c = m->clients; c; c = c->next) {
     occ |= c->tags;
     if (c->isurgent)
       urg |= c->tags;
   }
   x = 0;
+
   for (i = 0; i < LENGTH(tags); i++) {
     w = TEXTW(tags[i]);
     drw_setscheme(
-        drw, scheme[m->tagset[m->seltags] & 1 << i ? SchemeSel : SchemeNorm]);
+        drw, scheme[m->tagset[m->seltags] & 1 << i ? SchemeTagSel : SchemeTag]);
+
     drw_text(drw, x, 0, w, bh, lrpad / 2, tags[i], urg & 1 << i);
     if (occ & 1 << i)
       drw_rect(drw, x + boxs, boxs, boxw, boxw,
                m == selmon && selmon->sel && selmon->sel->tags & 1 << i,
                urg & 1 << i);
     x += w;
+
+    char *arrow;
+    if (m->tagset[m->seltags] & 1 << i) {
+      drw_setscheme(drw, scheme[SchemeSelToTag]);
+      arrow = RIGHT_ARROW;
+    } else if (i < LENGTH(tags) - 1 && m->tagset[m->seltags] & 1 << (i + 1)) {
+      drw_setscheme(drw, scheme[SchemeTagToSel]);
+      arrow = RIGHT_ARROW;
+    } else {
+      drw_setscheme(drw, scheme[SchemeTagToTag]);
+      arrow = RIGHT_ARROW_LIGHT;
+    }
+
+    w = TEXTW(arrow) - lrpad;
+    drw_text(drw, x, 0, w, bh, 0, arrow, 0);
+    x += w;
   }
+
   w = blw = TEXTW(m->ltsymbol);
-  drw_setscheme(drw, scheme[SchemeNorm]);
+  drw_setscheme(drw, scheme[SchemeLime]);
+
   x = drw_text(drw, x, 0, w, bh, lrpad / 2, m->ltsymbol, 0);
+  drw_setscheme(drw, scheme[SchemeLimeTransition]);
+  x = drw_text(drw, x, 0, 8, bh, 0, RIGHT_ARROW, 0);
 
   if ((w = m->ww - sw - x) > bh) {
     if (m->sel) {
-      drw_setscheme(drw, scheme[m == selmon ? SchemeSel : SchemeNorm]);
+      drw_setscheme(drw, scheme[SchemeNorm]);
       drw_text(drw, x, 0, w, bh, lrpad / 2, m->sel->name, 0);
       if (m->sel->isfloating)
         drw_rect(drw, x + boxs, boxs, boxw, boxw, m->sel->isfixed, 0);
@@ -1848,10 +1874,10 @@ void updatebars(void) {
   XSetWindowAttributes wa = {.override_redirect = True,
                              .background_pixmap = ParentRelative,
                              .event_mask = ButtonPressMask | ExposureMask};
-  XClassHint ch = {"dwm", "dwm"};
   for (m = mons; m; m = m->next) {
     if (m->barwin)
       continue;
+    XClassHint ch = {"dwm", "dwm"};
     m->barwin = XCreateWindow(
         dpy, root, m->wx, m->by, m->ww, bh, 0, DefaultDepth(dpy, screen),
         CopyFromParent, DefaultVisual(dpy, screen),

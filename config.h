@@ -10,18 +10,39 @@ static const unsigned int topgappx =
 static const unsigned int snap = 32; /* snap pixel */
 static const int showbar = 1;        /* 0 means no bar */
 static const int topbar = 1;         /* 0 means bottom bar */
-static const char *fonts[] = {"anonymicepro:size=10"};
-static const char dmenufont[] = "anonymicepro:size=10";
+static const char *fonts[] = {
+    "xos4 Terminess Powerline:size=12:antialias=true",         // Main font.
+    "NotoSans Nerd Font:style=Regular:size=12:antialias=true", // Unicode font.
+    "Siji:style=Regular:size=12:antialias=true"};              // Unicode font.
+static const char dmenufont[] =
+    "xos4 Terminess Powerline:size=12:antialias=true";
+static const char col_black[] = "#000000";
 static const char col_gray1[] = "#222222";
 static const char col_gray2[] = "#444444";
 static const char col_gray3[] = "#bbbbbb";
 static const char col_gray4[] = "#eeeeee";
-static const char col_cyan[] = "#005577";
+static const char col_blue1[] = "#b3d4f3";
+static const char col_blue2[] = "#528fbb";
+static const char col_lime[] = "#d4e5ca";
+static const char col_lpink[] = "#f7ced9";
+static const char col_dpink[] = "#e5adc6";
 static const char *colors[][3] = {
     /*               fg         bg         border   */
-    [SchemeNorm] = {col_gray3, col_gray1, col_gray2},
-    [SchemeSel] = {col_gray4, col_cyan, col_cyan},
-};
+    [SchemeNorm] = {col_gray1, col_blue1, col_blue1},
+    [SchemeSel] = {col_gray3, col_gray1, col_gray1},
+    [SchemePink] = {col_black, col_dpink, col_dpink},
+    [SchemeLime] = {col_black, col_lime, col_lime},
+    [SchemeLimeTransition] = {col_lime, col_blue1, col_blue1},
+    [SchemeTag] = {col_black, col_lpink, col_lpink},
+    [SchemeTagSel] = {col_black, col_dpink, col_dpink},
+    [SchemeSelToTag] = {col_dpink, col_lpink, col_lpink},
+    [SchemeTagToSel] = {col_lpink, col_dpink, col_dpink},
+    [SchemeTagToTag] = {col_gray1, col_lpink, col_lpink}};
+
+static const char *RIGHT_ARROW = "";
+static const char *LEFT_ARROW = "";
+static const char *RIGHT_ARROW_LIGHT = "";
+static const char *LEFT_ARROW_LIGHT = "";
 
 /* tagging */
 static const char *tags[] = {"1", "2", "3", "4", "5", "6", "7", "8", "9"};
@@ -50,7 +71,7 @@ static const Layout layouts[] = {
 };
 
 /* key definitions */
-#define MODKEY Mod4Mask
+#define MODKEY Mod1Mask
 #define TAGKEYS(KEY, TAG)                                                      \
   {MODKEY, KEY, view, {.ui = 1 << TAG}},                                       \
       {MODKEY | ControlMask, KEY, toggleview, {.ui = 1 << TAG}},               \
@@ -67,8 +88,8 @@ static const Layout layouts[] = {
 static char dmenumon[2] =
     "0"; /* component of dmenucmd, manipulated in spawn() */
 static const char *dmenucmd[] = {
-    "dmenu_run", "-m",      dmenumon, "-fn",    dmenufont, "-nb",     col_gray1,
-    "-nf",       col_gray3, "-sb",    col_cyan, "-sf",     col_gray4, NULL};
+    "dmenu_run", "-m",  dmenumon,  "-fn", dmenufont, "-nb", col_gray1, "-nf",
+    col_gray3,   "-sb", col_blue1, "-sf", col_gray4, NULL};
 static const char *pmenucmd[] = {"passmenu", "-i", NULL};
 static const char *termcmd[] = {"urxvt", NULL};
 // static const char *termcmd[]  = { "python3"
