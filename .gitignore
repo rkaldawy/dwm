@@ -1,3 +1,5 @@
 *.o
 dwm
 tags
+dwmbar/include
+dwmbar/lib

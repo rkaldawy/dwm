@@ -22,7 +22,10 @@ ${OBJ}: config.h config.mk
 config.h:
 	cp config.def.h $@
 
-dwm: ${OBJ}
+${DWMBAR}:
+	$(MAKE) -C ./dwmbar
+
+dwm: ${OBJ} ${DWMBAR}
 	${CC} -o $@ ${OBJ} ${LDFLAGS}
 
 clean:
@@ -43,9 +46,10 @@ install: all
 	mkdir -p ${DESTDIR}${MANPREFIX}/man1
 	sed "s/VERSION/${VERSION}/g" < dwm.1 > ${DESTDIR}${MANPREFIX}/man1/dwm.1
 	chmod 644 ${DESTDIR}${MANPREFIX}/man1/dwm.1
+	$(MAKE) -C ./dwmbar install
 
 uninstall:
 	rm -f ${DESTDIR}${PREFIX}/bin/dwm\
 		${DESTDIR}${MANPREFIX}/man1/dwm.1
 
-.PHONY: all options clean dist install uninstall
+.PHONY: all options clean dist install uninstall ${DWMBAR}
