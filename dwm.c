@@ -1629,13 +1629,9 @@ void setup(void) {
   updatebars();
   updatestatus();
 
-  /* fork to start dwmbar */
-  pid_t pid;
-  pid = fork();
-  if (!pid) {
-    run_bar();
-    return;
-  }
+  /* init dwmbar */
+  DWMBAR_setupbar();
+  DWMBAR_startbar();
 
   /* supporting window for NetWMCheck */
   wmcheckwin = XCreateSimpleWindow(dpy, root, 0, 0, 1, 1, 0, 0, 0);
